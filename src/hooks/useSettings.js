@@ -1,122 +1,73 @@
-// ============================================================================
-// src/hooks/useSettings.js - Site Settings Management Hook
-// ============================================================================
-
-import { useState, useEffect, useCallback } from 'react';
-import { getSettings, saveSettings } from '../services/api';
-import { applyThemeColors } from '../utils/applyTheme';
+import { useState, useEffect } from 'react';
+import { getSettings, updateSettings } from '../services/api';
+import { applyTheme } from '../utils/applyTheme';
+import toast from 'react-hot-toast';
 
 export function useSettings() {
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [hasChanges, setHasChanges] = useState(false);
-  const [originalSettings, setOriginalSettings] = useState(null);
-  
-  const loadSettings = useCallback(async () => {
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      const settingsData = await getSettings();
-      setSettings(settingsData);
-      setOriginalSettings(JSON.parse(JSON.stringify(settingsData))); // Deep copy
-      
-      // Apply theme colors to CSS
-      if (settingsData.branding) {
-        applyThemeColors(settingsData.branding);
+      const data = await getSettings();
+      setSettings(data);
+      // Apply theme when settings load
+      if (data) {
+        applyTheme(data);
       }
-      
-    } catch (err) {
-      setError(err.message);
-      console.error('Error loading settings:', err);
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+      toast.error('Failed to load settings');
     } finally {
       setLoading(false);
     }
-  }, []);
-  
-  useEffect(() => {
-    loadSettings();
-  }, [loadSettings]);
-  
-  const updateSetting = useCallback((path, value) => {
-    setSettings(prev => {
-      const updated = { ...prev };
-      const keys = path.split('.');
-      let current = updated;
-      
-      // Navigate to the parent of the target key
-      for (let i = 0; i < keys.length - 1; i++) {
-        if (!current[keys[i]]) {
-          current[keys[i]] = {};
-        }
-        current = current[keys[i]];
-      }
-      
-      // Set the value
-      current[keys[keys.length - 1]] = value;
-      
-      // Check if there are changes
-      setHasChanges(JSON.stringify(updated) !== JSON.stringify(originalSettings));
-      
-      return updated;
-    });
-  }, [originalSettings]);
-  
-  const saveCurrentSettings = useCallback(async () => {
-    try {
-      await saveSettings(settings);
-      setOriginalSettings(JSON.parse(JSON.stringify(settings)));
-      setHasChanges(false);
-      
-      // Apply theme changes
-      if (settings.branding) {
-        applyThemeColors(settings.branding);
-      }
-      
-      return { success: true };
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    }
-  }, [settings]);
-  
-  const resetSettings = useCallback(() => {
-    setSettings(JSON.parse(JSON.stringify(originalSettings)));
-    setHasChanges(false);
-  }, [originalSettings]);
-  
-  const getSetting = useCallback((path, defaultValue = null) => {
-    if (!settings) return defaultValue;
-    
+  };
+
+  const updateSetting = (path, value) => {
+    const newSettings = { ...settings };
     const keys = path.split('.');
-    let current = settings;
+    let current = newSettings;
     
-    for (const key of keys) {
-      if (current[key] === undefined) {
-        return defaultValue;
-      }
-      current = current[key];
+    for (let i = 0; i < keys.length - 1; i++) {
+      if (!current[keys[i]]) current[keys[i]] = {};
+      current = current[keys[i]];
     }
     
-    return current;
-  }, [settings]);
-  
+    current[keys[keys.length - 1]] = value;
+    setSettings(newSettings);
+    
+    // Apply theme changes immediately for preview
+    if (path.startsWith('branding')) {
+      applyTheme(newSettings);
+    }
+  };
+
+  const saveSettings = async () => {
+    setSaving(true);
+    try {
+      await updateSettings(settings);
+      toast.success('Settings saved successfully!');
+      // Apply theme after save
+      applyTheme(settings);
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+      toast.error('Failed to save settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return {
     settings,
     loading,
-    error,
-    hasChanges,
+    saving,
     updateSetting,
-    saveSettings: saveCurrentSettings,
-    resetSettings,
-    refetch: loadSettings,
-    getSetting,
-    
-    // Shortcut getters for common settings
-    branding: settings?.branding || {},
-    theme: settings?.theme || {},
-    layout: settings?.layout || {},
-    features: settings?.features || {},
-    images: settings?.images || {}
+    saveSettings,
+    reloadSettings: loadSettings
   };
 }

@@ -1,84 +1,56 @@
-//===========================================================================
-// src/hooks/useAuth.js - Authentication Hook and Context Provider
-// ============================================================================
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth } from '../services/auth';
+import { useState, useEffect, createContext, useContext } from 'react';
+import { login, logout, getCurrentUser } from '../services/auth';
 
 const AuthContext = createContext({});
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
-    // Check for existing session on mount
-    auth.getCurrentUser()
-      .then(setUser)
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
-    
-    // Set up session monitoring
-    const sessionInterval = auth.setupSessionMonitoring();
-    
-    return () => {
-      if (sessionInterval) {
-        clearInterval(sessionInterval);
-      }
-    };
+    checkAuth();
   }, []);
-  
-  const login = async (email, password) => {
+
+  const checkAuth = async () => {
     try {
-      setLoading(true);
-      const user = await auth.login(email, password);
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+    } catch (error) {
+      console.error('Auth check failed:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signIn = async (email, password) => {
+    try {
+      const user = await login(email, password);
       setUser(user);
       return user;
     } catch (error) {
-      setUser(null);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
-  
-  const logout = async () => {
+
+  const signOut = async () => {
     try {
-      setLoading(true);
-      await auth.logout();
+      await logout();
       setUser(null);
     } catch (error) {
       console.error('Logout error:', error);
-      // Force logout on error
+      // Still clear the user even if logout fails
       setUser(null);
-    } finally {
-      setLoading(false);
     }
   };
-  
-  const hasPermission = async (permission) => {
-    return await auth.hasPermission(permission, user);
-  };
-  
-  const hasRole = async (role) => {
-    return await auth.hasRole(role, user);
-  };
-  
-  const value = {
-    user,
-    login,
-    logout,
-    loading,
-    hasPermission,
-    hasRole,
-    isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin',
-    canPublish: user?.permissions?.includes('publish'),
-    canEdit: user?.permissions?.includes('write')
-  };
-  
+
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      signIn, 
+      signOut,
+      isAuthenticated: !!user 
+    }}>
       {children}
     </AuthContext.Provider>
   );
@@ -87,7 +59,7 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within AuthProvider');
   }
   return context;
 }
