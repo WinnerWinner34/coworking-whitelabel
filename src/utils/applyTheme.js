@@ -1,11 +1,11 @@
 // src/utils/applyTheme.js
-// Utility functions for applying dynamic themes to the site
-// Person A's settings page will use this to preview theme changes in real-time
+// Dynamic theme application utility for the coworking white-label platform
+// Handles color palette generation and CSS custom property updates
 
 /**
  * Convert hex color to RGB object
- * @param {string} hex - Hex color code (e.g., '#2563eb')
- * @returns {Object|null} RGB values or null if invalid
+ * @param {string} hex - Hex color (#ffffff)
+ * @returns {Object} RGB values {r, g, b}
  */
 function hexToRgb(hex) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -13,25 +13,25 @@ function hexToRgb(hex) {
     r: parseInt(result[1], 16),
     g: parseInt(result[2], 16),
     b: parseInt(result[3], 16)
-  } : null;
+  } : { r: 0, g: 0, b: 0 };
 }
 
 /**
- * Convert RGB to HSL for color manipulation
+ * Convert RGB to HSL
  * @param {number} r - Red (0-255)
  * @param {number} g - Green (0-255)
  * @param {number} b - Blue (0-255)
- * @returns {Object} HSL values
+ * @returns {Object} HSL values {h, s, l}
  */
 function rgbToHsl(r, g, b) {
   r /= 255;
   g /= 255;
   b /= 255;
-  
+
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   let h, s, l = (max + min) / 2;
-  
+
   if (max === min) {
     h = s = 0; // achromatic
   } else {
@@ -42,52 +42,74 @@ function rgbToHsl(r, g, b) {
       case r: h = (g - b) / d + (g < b ? 6 : 0); break;
       case g: h = (b - r) / d + 2; break;
       case b: h = (r - g) / d + 4; break;
+      default: h = 0;
     }
     h /= 6;
   }
-  
+
   return { h: h * 360, s: s * 100, l: l * 100 };
 }
 
 /**
- * Generate lighter/darker variations of a color
- * @param {string} hex - Base hex color
- * @param {number} amount - Amount to lighten/darken (-100 to 100)
- * @returns {string} Modified hex color
+ * Convert HSL to hex
+ * @param {number} h - Hue (0-360)
+ * @param {number} s - Saturation (0-100)
+ * @param {number} l - Lightness (0-100)
+ * @returns {string} Hex color
  */
-function adjustBrightness(hex, amount) {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return hex;
+function hslToHex(h, s, l) {
+  h = h % 360;
+  s = Math.max(0, Math.min(100, s)) / 100;
+  l = Math.max(0, Math.min(100, l)) / 100;
   
-  const adjust = (value) => {
-    const adjusted = value + (amount * 255 / 100);
-    return Math.max(0, Math.min(255, Math.round(adjusted)));
-  };
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+  const m = l - c / 2;
   
-  const r = adjust(rgb.r);
-  const g = adjust(rgb.g);
-  const b = adjust(rgb.b);
+  let r = 0, g = 0, b = 0;
   
-  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  if (0 <= h && h < 60) {
+    r = c; g = x; b = 0;
+  } else if (60 <= h && h < 120) {
+    r = x; g = c; b = 0;
+  } else if (120 <= h && h < 180) {
+    r = 0; g = c; b = x;
+  } else if (180 <= h && h < 240) {
+    r = 0; g = x; b = c;
+  } else if (240 <= h && h < 300) {
+    r = x; g = 0; b = c;
+  } else if (300 <= h && h < 360) {
+    r = c; g = 0; b = x;
+  }
+  
+  r = Math.round((r + m) * 255);
+  g = Math.round((g + m) * 255);
+  b = Math.round((b + m) * 255);
+  
+  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
 
 /**
- * Generate color palette from a base color
+ * Generate a complete color palette from a base color
  * @param {string} baseColor - Base hex color
- * @returns {Object} Color palette with variations
+ * @returns {Object} Color palette with various shades
  */
 function generateColorPalette(baseColor) {
+  const rgb = hexToRgb(baseColor);
+  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+  
   return {
-    50: adjustBrightness(baseColor, 45),
-    100: adjustBrightness(baseColor, 35),
-    200: adjustBrightness(baseColor, 25),
-    300: adjustBrightness(baseColor, 15),
-    400: adjustBrightness(baseColor, 8),
+    50: hslToHex(hsl.h, hsl.s, Math.min(95, hsl.l + 40)),
+    100: hslToHex(hsl.h, hsl.s, Math.min(90, hsl.l + 30)),
+    200: hslToHex(hsl.h, hsl.s, Math.min(80, hsl.l + 20)),
+    300: hslToHex(hsl.h, hsl.s, Math.min(70, hsl.l + 10)),
+    400: hslToHex(hsl.h, hsl.s, Math.min(60, hsl.l + 5)),
     500: baseColor, // Base color
-    600: adjustBrightness(baseColor, -8),
-    700: adjustBrightness(baseColor, -15),
-    800: adjustBrightness(baseColor, -25),
-    900: adjustBrightness(baseColor, -35)
+    600: hslToHex(hsl.h, hsl.s, Math.max(40, hsl.l - 5)),
+    700: hslToHex(hsl.h, hsl.s, Math.max(30, hsl.l - 10)),
+    800: hslToHex(hsl.h, hsl.s, Math.max(20, hsl.l - 20)),
+    900: hslToHex(hsl.h, hsl.s, Math.max(10, hsl.l - 30)),
+    950: hslToHex(hsl.h, hsl.s, Math.max(5, hsl.l - 40))
   };
 }
 
@@ -95,7 +117,9 @@ function generateColorPalette(baseColor) {
  * Apply theme colors to CSS custom properties
  * @param {Object} theme - Theme configuration object
  */
-export function applyThemeColors(theme) {
+export function applyTheme(theme) {
+  if (!theme) return;
+  
   const root = document.documentElement;
   
   // Primary color and variations
@@ -106,7 +130,6 @@ export function applyThemeColors(theme) {
     root.style.setProperty('--color-primary', theme.primaryColor);
     root.style.setProperty('--color-primary-rgb', `${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b}`);
     
-    // Set palette variations
     Object.entries(primaryPalette).forEach(([shade, color]) => {
       root.style.setProperty(`--color-primary-${shade}`, color);
     });
@@ -147,49 +170,14 @@ export function applyThemeColors(theme) {
     root.style.setProperty('--color-text', theme.textColor);
   }
   
-  console.log('🎨 Theme colors applied:', {
+  // Update meta theme-color for mobile browsers
+  updateMetaThemeColor(theme.primaryColor);
+  
+  console.log('🎨 Theme applied:', {
     primary: theme.primaryColor,
     secondary: theme.secondaryColor,
     accent: theme.accentColor
   });
-}
-
-/**
- * Apply complete theme including fonts and spacing
- * @param {Object} settings - Complete settings object
- */
-export function applyFullTheme(settings) {
-  if (!settings) return;
-  
-  const root = document.documentElement;
-  
-  // Apply colors
-  if (settings.branding) {
-    applyThemeColors(settings.branding);
-  }
-  
-  // Apply typography (if defined in future)
-  if (settings.typography) {
-    if (settings.typography.fontFamily) {
-      root.style.setProperty('--font-family', settings.typography.fontFamily);
-    }
-    if (settings.typography.fontSize) {
-      root.style.setProperty('--font-size-base', settings.typography.fontSize);
-    }
-  }
-  
-  // Apply layout settings
-  if (settings.layout) {
-    if (settings.layout.borderRadius) {
-      root.style.setProperty('--border-radius', settings.layout.borderRadius);
-    }
-    if (settings.layout.spacing) {
-      root.style.setProperty('--spacing-unit', settings.layout.spacing);
-    }
-  }
-  
-  // Update meta theme-color for mobile browsers
-  updateMetaThemeColor(settings.branding?.primaryColor);
 }
 
 /**
@@ -209,148 +197,43 @@ function updateMetaThemeColor(color) {
 }
 
 /**
- * Generate CSS for theme preview
- * @param {Object} theme - Theme configuration
- * @returns {string} CSS string
+ * Get contrasting text color for given background
+ * @param {string} backgroundColor - Hex color
+ * @returns {string} White or black hex color
  */
-export function generateThemeCSS(theme) {
-  const primaryPalette = generateColorPalette(theme.primaryColor || '#2563eb');
-  const secondaryPalette = generateColorPalette(theme.secondaryColor || '#9333ea');
-  const accentPalette = generateColorPalette(theme.accentColor || '#10b981');
-  
-  let css = ':root {\n';
-  
-  // Primary colors
-  css += `  --color-primary: ${theme.primaryColor || '#2563eb'};\n`;
-  Object.entries(primaryPalette).forEach(([shade, color]) => {
-    css += `  --color-primary-${shade}: ${color};\n`;
-  });
-  
-  // Secondary colors
-  css += `  --color-secondary: ${theme.secondaryColor || '#9333ea'};\n`;
-  Object.entries(secondaryPalette).forEach(([shade, color]) => {
-    css += `  --color-secondary-${shade}: ${color};\n`;
-  });
-  
-  // Accent colors
-  css += `  --color-accent: ${theme.accentColor || '#10b981'};\n`;
-  Object.entries(accentPalette).forEach(([shade, color]) => {
-    css += `  --color-accent-${shade}: ${color};\n`;
-  });
-  
-  // RGB versions for opacity
-  const primaryRgb = hexToRgb(theme.primaryColor || '#2563eb');
-  const secondaryRgb = hexToRgb(theme.secondaryColor || '#9333ea');
-  const accentRgb = hexToRgb(theme.accentColor || '#10b981');
-  
-  if (primaryRgb) {
-    css += `  --color-primary-rgb: ${primaryRgb.r}, ${primaryRgb.g}, ${primaryRgb.b};\n`;
-  }
-  if (secondaryRgb) {
-    css += `  --color-secondary-rgb: ${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b};\n`;
-  }
-  if (accentRgb) {
-    css += `  --color-accent-rgb: ${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b};\n`;
-  }
-  
-  css += '}\n';
-  
-  return css;
+function getContrastingTextColor(backgroundColor) {
+  const rgb = hexToRgb(backgroundColor);
+  const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+  return brightness > 128 ? '#000000' : '#ffffff';
 }
 
 /**
- * Reset theme to default colors
+ * Apply theme to settings object structure
+ * @param {Object} settings - Complete settings object
  */
-export function resetTheme() {
-  const defaultTheme = {
-    primaryColor: '#2563eb',
-    secondaryColor: '#9333ea',
-    accentColor: '#10b981',
-    backgroundColor: '#f9fafb',
-    textColor: '#111827'
-  };
+export function applyFullTheme(settings) {
+  if (!settings || !settings.branding) return;
   
-  applyThemeColors(defaultTheme);
-}
-
-/**
- * Get current theme colors from CSS
- * @returns {Object} Current theme colors
- */
-export function getCurrentTheme() {
+  applyTheme(settings.branding);
+  
+  // Apply additional settings if they exist
   const root = document.documentElement;
-  const computedStyle = getComputedStyle(root);
   
-  return {
-    primaryColor: computedStyle.getPropertyValue('--color-primary').trim() || '#2563eb',
-    secondaryColor: computedStyle.getPropertyValue('--color-secondary').trim() || '#9333ea',
-    accentColor: computedStyle.getPropertyValue('--color-accent').trim() || '#10b981',
-    backgroundColor: computedStyle.getPropertyValue('--color-background').trim() || '#f9fafb',
-    textColor: computedStyle.getPropertyValue('--color-text').trim() || '#111827'
-  };
-}
-
-/**
- * Preview theme temporarily (for settings page)
- * @param {Object} theme - Theme to preview
- * @returns {Function} Function to revert changes
- */
-export function previewTheme(theme) {
-  const currentTheme = getCurrentTheme();
-  applyThemeColors(theme);
+  if (settings.branding.borderRadius) {
+    root.style.setProperty('--border-radius-base', settings.branding.borderRadius);
+  }
   
-  // Return function to revert
-  return () => {
-    applyThemeColors(currentTheme);
-  };
+  if (settings.branding.fontFamily) {
+    root.style.setProperty('--font-family-base', settings.branding.fontFamily);
+  }
 }
 
-/**
- * Check if a color is light or dark
- * @param {string} hex - Hex color
- * @returns {string} 'light' or 'dark'
- */
-export function getColorBrightness(hex) {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return 'dark';
-  
-  // Calculate luminance
-  const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
-  return luminance > 0.5 ? 'light' : 'dark';
-}
-
-/**
- * Get contrasting text color for a background
- * @param {string} backgroundColor - Background hex color
- * @returns {string} '#ffffff' or '#000000'
- */
-export function getContrastingTextColor(backgroundColor) {
-  const brightness = getColorBrightness(backgroundColor);
-  return brightness === 'light' ? '#000000' : '#ffffff';
-}
-
-/**
- * Generate accessible color combinations
- * @param {string} baseColor - Base hex color
- * @returns {Object} Color combinations with good contrast
- */
-export function generateAccessibleColors(baseColor) {
-  const brightness = getColorBrightness(baseColor);
-  
-  return {
-    background: baseColor,
-    text: getContrastingTextColor(baseColor),
-    accent: brightness === 'light' ? adjustBrightness(baseColor, -30) : adjustBrightness(baseColor, 30),
-    muted: brightness === 'light' ? adjustBrightness(baseColor, -10) : adjustBrightness(baseColor, 10),
-    border: brightness === 'light' ? adjustBrightness(baseColor, -20) : adjustBrightness(baseColor, 20)
-  };
-}
-
-// Export utility functions for external use
+// Export utility functions
 export { 
   hexToRgb, 
   rgbToHsl, 
-  adjustBrightness, 
+  hslToHex,
   generateColorPalette,
-  updateMetaThemeColor 
+  getContrastingTextColor,
+  updateMetaThemeColor
 };
