@@ -4,7 +4,7 @@ import { AuthProvider } from './hooks/useAuth';
 import { Toaster } from 'react-hot-toast';
 
 // Components
-import Layout from './components/layout';
+import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Public Pages

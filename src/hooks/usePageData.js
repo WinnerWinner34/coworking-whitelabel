@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getPageData, savePageData, publishPageData } from '../services/api';
+import { getPageContent, savePageContent, publishPage } from '../services/api';
 import toast from 'react-hot-toast';
 
 export function usePageData(pageId) {
@@ -18,7 +18,7 @@ export function usePageData(pageId) {
   const loadPageData = async () => {
     try {
       setLoading(true);
-      const pageData = await getPageData(pageId);
+      const pageData = await getPageContent(pageId);
       setData(pageData);
       setDraft(pageData);
       setHasChanges(false);
@@ -53,7 +53,7 @@ export function usePageData(pageId) {
 
     setSaving(true);
     try {
-      await savePageData(pageId, draft);
+      await savePageContent(pageId, draft);
       toast.success('Changes saved!');
       setHasChanges(false);
     } catch (error) {
@@ -67,7 +67,7 @@ export function usePageData(pageId) {
   const publish = async () => {
     setSaving(true);
     try {
-      await publishPageData(pageId, draft);
+      await publishPage(pageId, draft);
       setData(draft);
       setHasChanges(false);
       toast.success('Published successfully!');

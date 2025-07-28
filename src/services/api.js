@@ -20,7 +20,7 @@ try {
 }
 
 // Determine if we should use Firebase
-const useFirebase = () => {
+const checkFirebase = () => {
   return process.env.REACT_APP_USE_FIREBASE === 'true' && db && storage;
 };
 
@@ -68,7 +68,7 @@ function checkStorageSize() {
 // ============================================================================
 
 async function saveToFirebase(pageId, content, isDraft = false) {
-  if (!useFirebase()) throw new Error('Firebase not configured');
+  if (!checkFirebase()) throw new Error('Firebase not configured');
   
   const collection = isDraft ? 'drafts' : 'pages';
   const docRef = db.collection(collection).doc(pageId);
@@ -83,7 +83,7 @@ async function saveToFirebase(pageId, content, isDraft = false) {
 }
 
 async function loadFromFirebase(pageId, isDraft = false) {
-  if (!useFirebase()) throw new Error('Firebase not configured');
+  if (!checkFirebase()) throw new Error('Firebase not configured');
   
   const collection = isDraft ? 'drafts' : 'pages';
   const docRef = db.collection(collection).doc(pageId);
@@ -100,7 +100,7 @@ async function loadFromFirebase(pageId, isDraft = false) {
 }
 
 async function publishFromFirebase(pageId) {
-  if (!useFirebase()) throw new Error('Firebase not configured');
+  if (!checkFirebase()) throw new Error('Firebase not configured');
   
   // Get draft content
   const draftDoc = await db.collection('drafts').doc(pageId).get();
@@ -193,7 +193,7 @@ export async function getPageContent(pageId, isDraft = false) {
     let content = null;
     
     // Try Firebase first if available
-    if (useFirebase()) {
+    if (checkFirebase()) {
       if (isDraft) {
         // Check for draft first, fallback to published
         content = await loadFromFirebase(pageId, true);
@@ -234,7 +234,7 @@ export async function getPageContent(pageId, isDraft = false) {
  */
 export async function savePageContent(pageId, content) {
   try {
-    if (useFirebase()) {
+    if (checkFirebase()) {
       return await saveToFirebase(pageId, content, true);
     } else {
       return saveToLocalStorage(pageId, content, true);
@@ -252,7 +252,7 @@ export async function savePageContent(pageId, content) {
  */
 export async function publishPage(pageId) {
   try {
-    if (useFirebase()) {
+    if (checkFirebase()) {
       return await publishFromFirebase(pageId);
     } else {
       return publishFromLocalStorage(pageId);
@@ -269,7 +269,7 @@ export async function publishPage(pageId) {
  */
 export async function getDraftList() {
   try {
-    if (useFirebase()) {
+    if (checkFirebase()) {
       const snapshot = await db.collection('drafts').get();
       return snapshot.docs.map(doc => doc.id);
     } else {
@@ -289,7 +289,7 @@ export async function getDraftList() {
  */
 export async function deleteDraft(pageId) {
   try {
-    if (useFirebase()) {
+    if (checkFirebase()) {
       await db.collection('drafts').doc(pageId).delete();
     } else {
       const drafts = JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}');
@@ -313,7 +313,7 @@ export async function deleteDraft(pageId) {
  */
 export async function getSettings() {
   try {
-    if (useFirebase()) {
+    if (checkFirebase()) {
       const doc = await db.collection('settings').doc('site').get();
       if (doc.exists) {
         return doc.data();
@@ -337,7 +337,7 @@ export async function getSettings() {
  */
 export async function saveSettings(settings) {
   try {
-    if (useFirebase()) {
+    if (checkFirebase()) {
       await db.collection('settings').doc('site').set({
         ...settings,
         lastModified: new Date()
@@ -416,7 +416,7 @@ export function debugStorage() {
   console.group('🔍 Storage Debug Info');
   
   // Check storage type
-  console.log('Storage type:', useFirebase() ? 'Firebase' : 'localStorage');
+  console.log('Storage type:', checkFirebase() ? 'Firebase' : 'localStorage');
   
   // Local storage contents
   console.log('Published data:', JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'));
@@ -444,7 +444,7 @@ export async function clearAllData() {
     localStorage.removeItem(DRAFT_KEY);
     localStorage.removeItem(SETTINGS_KEY);
     
-    if (useFirebase()) {
+    if (checkFirebase()) {
       // Note: This would need admin permissions in production
       console.warn('Firebase data clearing not implemented for safety');
     }
@@ -459,4 +459,4 @@ export async function clearAllData() {
 }
 
 // Export storage info for monitoring
-export { checkStorageSize, useFirebase };
+export { checkStorageSize, checkFirebase };

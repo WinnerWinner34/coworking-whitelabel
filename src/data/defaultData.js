@@ -132,3 +132,27 @@ export const defaultData = {
 };
 
 export default defaultData;
+
+
+
+export const defaultSettings = {
+  branding: {
+    siteName: 'The Coworking Space',
+    tagline: 'Your creative workspace in the heart of the city',
+    primaryColor: '#2563eb',
+    secondaryColor: '#9333ea',
+    accentColor: '#10b981',
+    backgroundColor: '#f9fafb',
+    textColor: '#111827'
+  },
+  layout: {
+    maxWidth: '1200px',
+    borderRadius: '8px',
+    fontFamily: 'Inter, sans-serif'
+  },
+  features: {
+    enableDrafts: true,
+    enableComments: false,
+    enableAnalytics: true
+  }
+};

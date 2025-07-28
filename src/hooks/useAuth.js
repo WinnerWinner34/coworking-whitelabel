@@ -1,5 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react';
-import { login, logout, getCurrentUser } from '../services/auth';
+import { auth } from '../services/auth';
 
 const AuthContext = createContext({});
 
@@ -13,7 +13,7 @@ export function AuthProvider({ children }) {
 
   const checkAuth = async () => {
     try {
-      const currentUser = await getCurrentUser();
+      const currentUser = await auth.getCurrentUser();
       setUser(currentUser);
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -24,7 +24,7 @@ export function AuthProvider({ children }) {
 
   const signIn = async (email, password) => {
     try {
-      const user = await login(email, password);
+      const user = await auth.login(email, password);
       setUser(user);
       return user;
     } catch (error) {
@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
 
   const signOut = async () => {
     try {
-      await logout();
+      await auth.logout();
       setUser(null);
     } catch (error) {
       console.error('Logout error:', error);

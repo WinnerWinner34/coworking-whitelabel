@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSettings, updateSettings } from '../services/api';
+import { getSettings, saveSettings } from '../services/api';
 import { applyTheme } from '../utils/applyTheme';
 import toast from 'react-hot-toast';
 
@@ -50,7 +50,7 @@ export function useSettings() {
   const saveSettings = async () => {
     setSaving(true);
     try {
-      await updateSettings(settings);
+      await saveSettings(settings);
       toast.success('Settings saved successfully!');
       // Apply theme after save
       applyTheme(settings);
