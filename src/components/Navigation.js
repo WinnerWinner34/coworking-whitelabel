@@ -1,22 +1,34 @@
-// src/components/Navigation.js
-// Updated Navigation component with proper logout functionality using auth service
-
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useSettings } from '../hooks/useSettings';
 import toast from 'react-hot-toast';
 
 export default function Navigation({ isAdmin = false }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
+  const { settings, getEnabledPages } = useSettings();
+  
+  // Page configuration for navigation
+  const pageConfig = {
+    home: { name: 'Home', path: '' },
+    about: { name: 'About', path: 'about' },
+    team: { name: 'Team', path: 'team' },
+    news: { name: 'News', path: 'news' },
+    events: { name: 'Events', path: 'events' },
+    services: { name: 'Services', path: 'services' },
+    pricing: { name: 'Pricing', path: 'pricing' },
+    contact: { name: 'Contact', path: 'contact' },
+    register: { name: 'Register', path: 'register' }
+  };
   
   const getLinkClass = (path) => {
     const baseClass = "px-4 py-2 rounded transition-colors duration-200";
     const isActive = location.pathname === path;
     
     if (isActive) {
-      return `${baseClass} bg-primary-600 text-white`;
+      return `${baseClass} bg-blue-600 text-white`;
     }
     return `${baseClass} text-gray-700 hover:bg-gray-100 hover:text-gray-900`;
   };
@@ -31,6 +43,30 @@ export default function Navigation({ isAdmin = false }) {
       toast.error('Logout failed. Please try again.');
     }
   };
+
+  // Get enabled pages for navigation
+  const enabledPages = getEnabledPages();
+  
+  // Build navigation links based on enabled pages
+  const getNavigationLinks = () => {
+    return enabledPages.map(page => {
+      const config = pageConfig[page.id];
+      if (!config) return null;
+      
+      const path = isAdmin 
+        ? `/admin${config.path ? `/${config.path}` : ''}`
+        : `/${config.path}`;
+        
+      return {
+        id: page.id,
+        name: config.name,
+        path: path,
+        order: page.order
+      };
+    }).filter(Boolean);
+  };
+
+  const navigationLinks = getNavigationLinks();
   
   return (
     <nav className="bg-white shadow-lg sticky top-0 z-50">
@@ -39,47 +75,22 @@ export default function Navigation({ isAdmin = false }) {
           {/* Logo/Brand */}
           <Link 
             to={isAdmin ? "/admin" : "/"} 
-            className="text-xl font-bold text-primary-700 hover:text-primary-800 transition-colors"
+            className="text-xl font-bold text-blue-700 hover:text-blue-800 transition-colors"
           >
-            The Coworking Space
+            {settings?.general?.siteName || 'The Coworking Space'}
           </Link>
           
           {/* Navigation Links */}
           <div className="flex items-center space-x-2">
-            <Link 
-              to={isAdmin ? "/admin" : "/"} 
-              className={getLinkClass(isAdmin ? "/admin" : "/")}
-            >
-              Home
-            </Link>
-            
-            <Link 
-              to={isAdmin ? "/admin/about" : "/about"} 
-              className={getLinkClass(isAdmin ? "/admin/about" : "/about")}
-            >
-              About
-            </Link>
-            
-            <Link 
-              to={isAdmin ? "/admin/team" : "/team"} 
-              className={getLinkClass(isAdmin ? "/admin/team" : "/team")}
-            >
-              Team
-            </Link>
-            
-            <Link 
-              to={isAdmin ? "/admin/news" : "/news"} 
-              className={getLinkClass(isAdmin ? "/admin/news" : "/news")}
-            >
-              News
-            </Link>
-            
-            <Link 
-              to={isAdmin ? "/admin/events" : "/events"} 
-              className={getLinkClass(isAdmin ? "/admin/events" : "/events")}
-            >
-              Events
-            </Link>
+            {navigationLinks.map((link) => (
+              <Link 
+                key={link.id}
+                to={link.path} 
+                className={getLinkClass(link.path)}
+              >
+                {link.name}
+              </Link>
+            ))}
             
             {/* Admin-only links */}
             {isAdmin && (
@@ -109,11 +120,11 @@ export default function Navigation({ isAdmin = false }) {
               </>
             )}
             
-            {/* Public register link */}
-            {!isAdmin && (
+            {/* Public register link - only show if register page is enabled and not admin */}
+            {!isAdmin && enabledPages.some(page => page.id === 'register') && (
               <Link 
                 to="/register" 
-                className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors duration-200"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
               >
                 Register
               </Link>
