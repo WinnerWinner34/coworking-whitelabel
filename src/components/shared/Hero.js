@@ -1,9 +1,8 @@
 import React from 'react';
-import { useSettings } from '../../hooks/useSettings';
+import { usePageTemplate } from '../../hooks/useTemplateSettings';
 
 export default function Hero({ data, isEditable = false, onChange, pageId = 'home' }) {
-  const { getPageTemplate } = useSettings();
-  const template = getPageTemplate(pageId);
+  const { template } = usePageTemplate(pageId);
 
   const handleChange = (field, value) => {
     if (onChange) {
@@ -76,87 +75,51 @@ export default function Hero({ data, isEditable = false, onChange, pageId = 'hom
     </div>
   );
 
-  // Startup Template - Dynamic and energetic
-  const StartupTemplate = () => (
-    <div className="relative bg-gradient-to-r from-green-400 to-blue-500 text-white py-28 overflow-hidden">
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-blue-500 opacity-90"></div>
-        <div className="absolute inset-0" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}></div>
-      </div>
-      
-      <div className="container mx-auto text-center relative z-10 px-6">
-        <div className="inline-block bg-white bg-opacity-20 rounded-full px-4 py-2 mb-6">
-          <span className="text-sm font-semibold">🚀 INNOVATION HUB</span>
-        </div>
+  // Fallback - use your current hero if template system fails
+  const FallbackTemplate = () => (
+    <div className="hero text-white py-16">
+      <div className="container mx-auto text-center">
         <h1 
-          className="text-6xl font-black mb-6 leading-tight"
+          className="text-5xl font-bold mb-4"
           contentEditable={isEditable}
           suppressContentEditableWarning={true}
-          onBlur={(e) => isEditable && handleChange('title', e.target.textContent)}
+          onBlur={(e) => handleChange('title', e.target.textContent)}
         >
-          {data?.title || 'Build. Scale. Succeed.'}
+          {data?.title || 'Welcome'}
         </h1>
+        
         <p 
-          className="text-xl mb-8 max-w-2xl mx-auto"
+          className="text-xl mb-8"
           contentEditable={isEditable}
           suppressContentEditableWarning={true}
-          onBlur={(e) => isEditable && handleChange('subtitle', e.target.textContent)}
+          onBlur={(e) => handleChange('subtitle', e.target.textContent)}
         >
-          {data?.subtitle || 'Join the ecosystem where startups thrive and big ideas become reality'}
+          {data?.subtitle || 'Your subtitle here'}
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button className="bg-white text-gray-900 px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition transform hover:scale-105">
-            Join the Community
+        
+        {data?.cta && (
+          <button className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+            {data.cta.text}
           </button>
-          <button className="border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-gray-900 transition">
-            Watch Demo
-          </button>
-        </div>
+        )}
       </div>
     </div>
   );
 
-  // Minimal Template - Clean and simple
-  const MinimalTemplate = () => (
-    <div className="bg-white py-32 border-b border-gray-200">
-      <div className="container mx-auto text-center px-6">
-        <h1 
-          className="text-5xl font-light text-gray-900 mb-6 tracking-tight"
-          contentEditable={isEditable}
-          suppressContentEditableWarning={true}
-          onBlur={(e) => isEditable && handleChange('title', e.target.textContent)}
-        >
-          {data?.title || 'Simply Better Workspace'}
-        </h1>
-        <p 
-          className="text-lg text-gray-600 mb-8 max-w-xl mx-auto"
-          contentEditable={isEditable}
-          suppressContentEditableWarning={true}
-          onBlur={(e) => isEditable && handleChange('subtitle', e.target.textContent)}
-        >
-          {data?.subtitle || 'Clean, focused environments for clear thinking and productive work'}
-        </p>
-        <button className="bg-gray-900 text-white px-6 py-3 font-medium hover:bg-gray-800 transition">
-          Explore Spaces
-        </button>
-      </div>
-    </div>
-  );
-
-  // Template selector
+  // Template selector with fallback
   const renderTemplate = () => {
-    switch (template) {
-      case 'classic':
-        return <ClassicTemplate />;
-      case 'startup':
-        return <StartupTemplate />;
-      case 'minimal':
-        return <MinimalTemplate />;
-      case 'modern':
-      default:
-        return <ModernTemplate />;
+    try {
+      switch (template) {
+        case 'classic':
+          return <ClassicTemplate />;
+        case 'modern':
+          return <ModernTemplate />;
+        default:
+          return <ModernTemplate />;
+      }
+    } catch (error) {
+      console.error('Template rendering error:', error);
+      return <FallbackTemplate />;
     }
   };
 

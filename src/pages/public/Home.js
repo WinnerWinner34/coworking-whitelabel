@@ -9,7 +9,7 @@ export default function Home() {
   
   return (
     <div>
-      <Hero data={data?.hero} />
+      <Hero data={data?.hero} pageId="home" />
       
       {/* Features Section */}
       <section className="py-16">

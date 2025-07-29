@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
-import { SettingsProvider } from './hooks/useSettings';
+import { TemplateSettingsProvider } from './hooks/useTemplateSettings';
 import { Toaster } from 'react-hot-toast';
 
 // Components
@@ -56,7 +56,7 @@ function ContactPage() {
 function App() {
   return (
     <AuthProvider>
-      <SettingsProvider>
+      <TemplateSettingsProvider>
         <div className="App">
           <Toaster 
             position="top-right"
@@ -124,7 +124,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
-      </SettingsProvider>
+      </TemplateSettingsProvider>
     </AuthProvider>
   );
 }
