@@ -4,19 +4,22 @@ REM Pushes to both PersonalRepo and WorkRepo branches
 
 setlocal enabledelayedexpansion
 
-REM Branch variables
+REM Repository and Branch variables
 set PersonalRepo=WorkingWebsiteV2
+set PersonalRepoURL=https://github.com/WinnerWinner34/coworking-whitelabel.git
+
 set WorkRepo=ubitracks-whitelabel-webapps
+set WorkRepoURL=https://github.com/Ubitracks/ubitracks-whitelabel-webapps.git
 
 echo.
 echo 🚀 Dual Repository Push Script
 echo.
 
 REM Function to push to a branch
-call :push_to_branch "%PersonalRepo%" "Personal Repo"
+call :push_to_branch "%PersonalRepo%" "Personal Repo" "%PersonalRepoURL%"
 if errorlevel 1 exit /b 1
 
-call :push_to_branch "%WorkRepo%" "Work Repo"
+call :push_to_branch "%WorkRepo%" "Work Repo" "%WorkRepoURL%"
 if errorlevel 1 exit /b 1
 
 echo.
@@ -29,6 +32,7 @@ exit /b 0
 :push_to_branch
 set branch_name=%~1
 set repo_type=%~2
+set repo_url=%~3
 
 echo.
 echo === PUSHING TO %repo_type% ===
@@ -49,6 +53,16 @@ if errorlevel 1 (
     exit /b 1
 )
 
+REM Add the correct remote for this repository if it doesn't exist
+git remote get-url %repo_type% >nul 2>&1
+if errorlevel 1 (
+    echo 🔗 Adding remote for %repo_type%...
+    git remote add %repo_type% %repo_url%
+) else (
+    echo 🔗 Updating remote URL for %repo_type%...
+    git remote set-url %repo_type% %repo_url%
+)
+
 echo 📦 Adding all changes...
 git add .
 if errorlevel 1 (
@@ -66,13 +80,13 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo 🌐 Pushing to origin/%branch_name%...
-git push -u origin %branch_name%
+echo 🌐 Pushing to %repo_type%/%branch_name%...
+git push -u %repo_type% %branch_name%
 if errorlevel 1 (
     echo ❌ Error: Failed to push to remote
     exit /b 1
 )
 
-echo ✅ Successfully pushed to %branch_name%
+echo ✅ Successfully pushed to %branch_name% on %repo_type%
 echo.
 exit /b 0
