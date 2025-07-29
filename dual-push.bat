@@ -2,9 +2,15 @@
 REM Coworking Platform - Dual Git Push
 REM Pushes to both Personal and Work repositories
 
+REM Branch name variables
+set PersonalBranch=WorkingWebsiteV2
+set WorkBranch=WorkingWebsiteV2-Ubi
+
 echo ========================================
 echo  Coworking Platform - Dual Git Push
 echo ========================================
+echo Personal Branch: %PersonalBranch%
+echo Work Branch: %WorkBranch%
 echo.
 
 REM Check if this folder is already connected to git
@@ -55,31 +61,29 @@ echo.
 echo ========================================
 echo  Pushing to Personal GitHub (FIRST)
 echo ========================================
-REM Switch to personal branch and push
-git checkout WorkingWebsiteV2
-git push personal WorkingWebsiteV2
+REM Push current branch to personal remote with PersonalBranch name
+git push personal HEAD:%PersonalBranch%
 if errorlevel 1 (
     echo Trying to push to personal with -u flag...
-    git push -u personal WorkingWebsiteV2
+    git push -u personal HEAD:%PersonalBranch%
 )
 
 echo.
 echo ========================================
 echo  Pushing to Work GitHub (SECOND)
 echo ========================================
-REM Switch to work branch and push
-git checkout ubitracks-whitelabel-webapps
-git push work ubitracks-whitelabel-webapps
+REM Push current branch to work remote with WorkBranch name
+git push work HEAD:%WorkBranch%
 if errorlevel 1 (
     echo Trying to push to work with -u flag...
-    git push -u work ubitracks-whitelabel-webapps
+    git push -u work HEAD:%WorkBranch%
 )
 
 echo.
 echo ========================================
 echo  Push Complete!
 echo ========================================
-echo Personal: https://github.com/WinnerWinner34/coworking-whitelabel/tree/WorkingWebsiteV2
-echo Work:     https://github.com/Ubitracks/ubitracks-whitelabel-webapps/tree/ubitracks-whitelabel-webapps
+echo Personal: https://github.com/WinnerWinner34/coworking-whitelabel/tree/%PersonalBranch%
+echo Work:     https://github.com/Ubitracks/ubitracks-whitelabel-webapps/tree/%WorkBranch%
 echo.
 pause
