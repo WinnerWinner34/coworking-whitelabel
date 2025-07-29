@@ -61,23 +61,15 @@ echo.
 echo ========================================
 echo  Pushing to Personal GitHub (FIRST)
 echo ========================================
-REM Push current branch to personal remote with PersonalBranch name
-git push personal HEAD:%PersonalBranch%
-if errorlevel 1 (
-    echo Trying to push to personal with -u flag...
-    git push -u personal HEAD:%PersonalBranch%
-)
+REM Push current branch to personal remote with PersonalBranch name and set as upstream
+git push -u personal HEAD:%PersonalBranch%
 
 echo.
 echo ========================================
 echo  Pushing to Work GitHub (SECOND)
 echo ========================================
-REM Push current branch to work remote with WorkBranch name
+REM Push current branch to work remote with WorkBranch name (creates branch if doesn't exist)
 git push work HEAD:%WorkBranch%
-if errorlevel 1 (
-    echo Trying to push to work with -u flag...
-    git push -u work HEAD:%WorkBranch%
-)
 
 echo.
 echo ========================================
