@@ -40,13 +40,21 @@ This is a React-based coworking space management application with a unique dual-
    - Session management with 24-hour timeout
    - Role-based permissions (admin, manager, editor)
 
-3. **Template System** (`src/hooks/useTemplateSettings.js`)
-   - New feature allowing different visual templates per page
-   - Templates: modern, classic, minimal, bold, professional
+3. **PageTemplates System** (`src/pageTemplates/`)
+   - Centralized template architecture for all page sections
+   - Template Registry: Dynamic template loading and rendering
+   - Preset Manager: Pre-configured page layouts
+   - Backward compatible with existing template settings
+   - Hero Templates: Motive (alternating sections), Modern (gradient), Classic
+   - Extensible system ready for new template types (features, CTA, etc.)
+
+4. **Template Settings** (`src/hooks/useTemplateSettings.js`)
+   - Per-page template selection and customization
+   - Hero size controls (compact to xlarge)
    - Settings stored separately from page content
    - Live preview of template changes in admin interface
 
-4. **Component Data Flow**
+5. **Component Data Flow**
    - Pages use `usePageData` hook for content management
    - Real-time editing with contentEditable fields in admin mode
    - Changes tracked as drafts until explicitly published
@@ -59,6 +67,11 @@ This is a React-based coworking space management application with a unique dual-
 - **Image Handling**: Base64 for localStorage, Firebase Storage URLs for production
 - **Draft/Publish Workflow**: All edits saved as drafts, explicit publish action required
 - **Responsive Design**: Tailwind CSS for styling, mobile-first approach
+- **PageTemplates Architecture**:
+  - BaseTemplate class for all templates to extend
+  - Template registries for each template type
+  - Automatic migration from old to new data structures
+  - Motive-style hero with zigzag alternating sections
 
 ### Firebase Configuration
 
@@ -76,3 +89,11 @@ When `REACT_APP_USE_FIREBASE=true`, requires these environment variables:
 2. Admin interface accessible at `/admin/login`
 3. All data changes are isolated to drafts until published
 4. Use `dual-push.bat` for pushing to multiple Git remotes simultaneously
+
+### PageTemplates Migration
+
+The app has migrated to a new PageTemplates architecture:
+- Old hero data automatically migrated to new sections format
+- Templates now loaded dynamically from registry
+- Backward compatibility maintained for existing data
+- Migration runs automatically on first load

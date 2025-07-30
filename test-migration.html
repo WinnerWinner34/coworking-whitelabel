@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test PageTemplates Migration</title>
+</head>
+<body>
+    <h1>PageTemplates Migration Test</h1>
+    <button onclick="clearMigration()">Clear Migration Flag</button>
+    <button onclick="checkData()">Check Data</button>
+    <button onclick="forceModernTemplate()">Force Modern Template</button>
+    <pre id="output"></pre>
+
+    <script>
+        function clearMigration() {
+            localStorage.removeItem('pagetemplate_migration_complete');
+            localStorage.removeItem('pagetemplates_migration_v1');
+            output('Migration flags cleared. Refresh the app to run migration.');
+        }
+
+        function checkData() {
+            const data = localStorage.getItem('coworking_data');
+            const settings = localStorage.getItem('template_settings');
+            
+            output('=== COWORKING DATA ===\n' + (data ? JSON.stringify(JSON.parse(data), null, 2) : 'No data found'));
+            output('\n\n=== TEMPLATE SETTINGS ===\n' + (settings ? JSON.stringify(JSON.parse(settings), null, 2) : 'No settings found'));
+        }
+
+        function forceModernTemplate() {
+            let settings = localStorage.getItem('template_settings');
+            settings = settings ? JSON.parse(settings) : {};
+            
+            if (!settings.pages) settings.pages = {};
+            if (!settings.pages.home) settings.pages.home = {};
+            
+            settings.pages.home.template = 'modern';
+            settings.pages.home.enabled = true;
+            settings.pages.home.heroSize = 'large';
+            
+            localStorage.setItem('template_settings', JSON.stringify(settings));
+            output('Set home page to modern template');
+        }
+
+        function output(text) {
+            document.getElementById('output').textContent += text + '\n';
+        }
+
+        // Check on load
+        window.onload = () => {
+            output('PageTemplates Migration Test Loaded');
+            checkData();
+        };
+    </script>
+</body>
+</html>
