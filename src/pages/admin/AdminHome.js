@@ -74,6 +74,85 @@ export default function AdminHome() {
       {/* Hero Section */}
       <Hero data={draft?.hero} isEditable onChange={updateField} />
       
+      {/* Hero Sections Manager */}
+      <section className="py-8 bg-gray-50">
+        <div className="container mx-auto px-6">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold mb-4">Hero Sections Manager</h3>
+            <div className="space-y-4">
+              {draft?.hero?.sections?.map((section, index) => (
+                <div key={section.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <span className="font-medium">{section.title}</span>
+                    <span className="ml-4 text-sm text-gray-500">
+                      {section.type === 'main' ? 'Main Hero' : `Section ${index}`} - 
+                      {section.alignment === 'left' ? ' Text Left' : ' Text Right'}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    {index > 0 && (
+                      <button
+                        onClick={() => {
+                          const sections = [...draft.hero.sections];
+                          [sections[index], sections[index - 1]] = [sections[index - 1], sections[index]];
+                          updateField('hero.sections', sections);
+                        }}
+                        className="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200"
+                      >
+                        ↑
+                      </button>
+                    )}
+                    {index < draft.hero.sections.length - 1 && (
+                      <button
+                        onClick={() => {
+                          const sections = [...draft.hero.sections];
+                          [sections[index], sections[index + 1]] = [sections[index + 1], sections[index]];
+                          updateField('hero.sections', sections);
+                        }}
+                        className="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200"
+                      >
+                        ↓
+                      </button>
+                    )}
+                    {section.type !== 'main' && (
+                      <button
+                        onClick={() => {
+                          if (window.confirm('Delete this section?')) {
+                            const sections = draft.hero.sections.filter(s => s.id !== section.id);
+                            updateField('hero.sections', sections);
+                          }
+                        }}
+                        className="px-3 py-1 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  const newSection = {
+                    id: `hero-${Date.now()}`,
+                    type: 'feature',
+                    title: 'New Section Title',
+                    subtitle: 'Section Subtitle',
+                    description: 'Add your section description here.',
+                    image: '',
+                    imageAlt: '',
+                    alignment: draft.hero.sections.length % 2 === 0 ? 'left' : 'right'
+                  };
+                  updateField('hero.sections', [...(draft.hero.sections || []), newSection]);
+                }}
+                className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700"
+              >
+                + Add New Section
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+      
       {/* Features Section */}
       <section className="py-16">
         <div className="container mx-auto">

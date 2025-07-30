@@ -14,15 +14,15 @@ const defaultTemplateSettings = {
     contactEmail: 'contact@coworkingspace.com'
   },
   pages: {
-    home: { enabled: true, template: 'modern', order: 0 },
-    about: { enabled: true, template: 'story', order: 1 },
-    team: { enabled: true, template: 'grid', order: 2 },
-    news: { enabled: true, template: 'blog', order: 3 },
-    events: { enabled: true, template: 'calendar', order: 4 },
-    services: { enabled: false, template: 'default', order: 5 },
-    pricing: { enabled: false, template: 'default', order: 6 },
-    contact: { enabled: false, template: 'default', order: 7 },
-    register: { enabled: true, template: 'default', order: 8 }
+    home: { enabled: true, template: 'modern', order: 0, heroSize: 'medium' },
+    about: { enabled: true, template: 'story', order: 1, heroSize: 'medium' },
+    team: { enabled: true, template: 'grid', order: 2, heroSize: 'medium' },
+    news: { enabled: true, template: 'blog', order: 3, heroSize: 'medium' },
+    events: { enabled: true, template: 'calendar', order: 4, heroSize: 'medium' },
+    services: { enabled: false, template: 'default', order: 5, heroSize: 'medium' },
+    pricing: { enabled: false, template: 'default', order: 6, heroSize: 'medium' },
+    contact: { enabled: false, template: 'default', order: 7, heroSize: 'medium' },
+    register: { enabled: true, template: 'default', order: 8, heroSize: 'medium' }
   },
   branding: {
     primaryColor: '#2563eb',

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
 import { TemplateSettingsProvider } from './hooks/useTemplateSettings';
 import { Toaster } from 'react-hot-toast';
+import { migrateHeroData } from './utils/migrateHeroData';
 
 // Components
 import Layout from './components/Layout';

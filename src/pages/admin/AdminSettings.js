@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { useSettings } from '../../hooks/useSettings';
+import { useTemplateSettings } from '../../hooks/useTemplateSettings';
 import toast from 'react-hot-toast';
 
 export default function AdminSettings() {
-  const { settings, loading, updateSetting, saveSettings } = useSettings();
+  const { settings, loading, updateSetting, saveSettings } = useTemplateSettings();
   const [activeTab, setActiveTab] = useState('general');
   const [saving, setSaving] = useState(false);
 
   // Available page templates
   const availableTemplates = {
     home: [
-      { id: 'modern', name: 'Modern Hero', description: 'Clean, modern design with large hero section' },
+      { id: 'modern', name: 'Motive Style', description: 'Alternating sections with professional layout' },
+      { id: 'gradient', name: 'Gradient Hero', description: 'Clean, modern design with gradient background' },
       { id: 'classic', name: 'Classic Business', description: 'Traditional business layout' },
       { id: 'startup', name: 'Startup', description: 'Dynamic startup-focused design' },
       { id: 'minimal', name: 'Minimal', description: 'Clean, minimalist approach' }
@@ -96,6 +97,17 @@ export default function AdminSettings() {
       [pageId]: {
         ...currentPages[pageId],
         order: newOrder
+      }
+    });
+  };
+
+  const handleHeroSizeChange = (pageId, size) => {
+    const currentPages = settings?.pages || {};
+    updateSetting('pages', {
+      ...currentPages,
+      [pageId]: {
+        ...currentPages[pageId],
+        heroSize: size
       }
     });
   };
@@ -219,7 +231,8 @@ export default function AdminSettings() {
                       const pageSettings = settings?.pages?.[page.id] || { 
                         enabled: page.required || false, 
                         template: availableTemplates[page.id]?.[0]?.id || 'default',
-                        order: 0
+                        order: 0,
+                        heroSize: 'medium'
                       };
                       
                       return (
@@ -267,21 +280,60 @@ export default function AdminSettings() {
                           </div>
 
                           {pageSettings.enabled && availableTemplates[page.id] && (
-                            <div className="mt-4 pl-6 border-l-2 border-gray-100">
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Template Style
-                              </label>
-                              <select
-                                value={pageSettings.template}
-                                onChange={(e) => handleTemplateChange(page.id, e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              >
-                                {availableTemplates[page.id].map((template) => (
-                                  <option key={template.id} value={template.id}>
-                                    {template.name} - {template.description}
-                                  </option>
-                                ))}
-                              </select>
+                            <div className="mt-4 pl-6 border-l-2 border-gray-100 space-y-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Template Style
+                                </label>
+                                <select
+                                  value={pageSettings.template}
+                                  onChange={(e) => handleTemplateChange(page.id, e.target.value)}
+                                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                  {availableTemplates[page.id].map((template) => (
+                                    <option key={template.id} value={template.id}>
+                                      {template.name} - {template.description}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              
+                              {/* Hero Size Slider - Only show for pages that have hero sections */}
+                              {['home', 'about', 'services', 'contact'].includes(page.id) && (
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Hero Banner Size
+                                  </label>
+                                  <div className="space-y-2">
+                                    <input
+                                      type="range"
+                                      min="1"
+                                      max="5"
+                                      value={
+                                        pageSettings.heroSize === 'small' ? 2 :
+                                        pageSettings.heroSize === 'medium' ? 3 :
+                                        pageSettings.heroSize === 'large' ? 4 :
+                                        pageSettings.heroSize === 'xlarge' ? 5 : 1
+                                      }
+                                      onChange={(e) => {
+                                        const sizes = ['compact', 'small', 'medium', 'large', 'xlarge'];
+                                        handleHeroSizeChange(page.id, sizes[parseInt(e.target.value) - 1]);
+                                      }}
+                                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                    />
+                                    <div className="flex justify-between text-xs text-gray-500">
+                                      <span>Compact</span>
+                                      <span>Small</span>
+                                      <span>Medium</span>
+                                      <span>Large</span>
+                                      <span>XLarge</span>
+                                    </div>
+                                    <div className="text-sm text-gray-600 text-center">
+                                      Current: <span className="font-medium">{pageSettings.heroSize || 'medium'}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
 

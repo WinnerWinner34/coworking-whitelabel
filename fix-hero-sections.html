@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fix Hero Sections</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        pre {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .success {
+            color: #10b981;
+            font-weight: bold;
+        }
+        .error {
+            color: #ef4444;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fix Hero Sections Helper</h1>
+    <p>This page will help you fix the missing hero sections on your home page.</p>
+    
+    <h2>Current Status:</h2>
+    <div id="status"></div>
+    
+    <h2>Actions:</h2>
+    <button onclick="checkData()">Check Current Data</button>
+    <button onclick="clearHomeData()">Clear Home Data Only</button>
+    <button onclick="clearAllData()">Clear All Data</button>
+    <button onclick="goToApp()">Go to App</button>
+    
+    <h2>Console Output:</h2>
+    <pre id="output"></pre>
+    
+    <script>
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+        }
+        
+        function checkData() {
+            log('Checking localStorage data...');
+            
+            const data = localStorage.getItem('coworking_data');
+            const settings = localStorage.getItem('template_settings');
+            
+            if (data) {
+                const parsed = JSON.parse(data);
+                log('Found coworking_data:');
+                log(JSON.stringify(parsed.home?.hero, null, 2));
+                
+                if (parsed.home?.hero?.sections) {
+                    log('✓ Hero sections found!', 'success');
+                } else {
+                    log('✗ Hero sections missing!', 'error');
+                }
+            } else {
+                log('No coworking_data found in localStorage');
+            }
+            
+            if (settings) {
+                const parsed = JSON.parse(settings);
+                log('Template settings:');
+                log(`Home template: ${parsed.pages?.home?.template || 'not set'}`);
+            }
+        }
+        
+        function clearHomeData() {
+            log('Clearing home data...');
+            
+            const data = localStorage.getItem('coworking_data');
+            if (data) {
+                const parsed = JSON.parse(data);
+                delete parsed.home;
+                localStorage.setItem('coworking_data', JSON.stringify(parsed));
+                log('Home data cleared!', 'success');
+                log('Refresh the app to load default data with sections');
+            } else {
+                log('No data to clear', 'error');
+            }
+        }
+        
+        function clearAllData() {
+            if (confirm('This will clear ALL localStorage data. Are you sure?')) {
+                localStorage.clear();
+                log('All localStorage cleared!', 'success');
+                log('Refresh the app to load all defaults');
+            }
+        }
+        
+        function goToApp() {
+            window.location.href = 'http://localhost:3000';
+        }
+        
+        // Check on load
+        checkData();
+    </script>
+</body>
+</html>
