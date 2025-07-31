@@ -97,3 +97,19 @@ The app has migrated to a new PageTemplates architecture:
 - Templates now loaded dynamically from registry
 - Backward compatibility maintained for existing data
 - Migration runs automatically on first load
+
+### Modern Template Updates (Following claudePlan.md)
+
+The Modern template has been redesigned with:
+- **Centered layout**: Full-screen centered design with max-width containers
+- **Two-column grid**: Clean grid layout replacing flex approach
+- **Alternating pattern**: 
+  - Even rows (0,2,4): Text left (yellow bg + red border) / Image right
+  - Odd rows (1,3,5): Image left / Text right (yellow bg + red border)
+- **Styling details**:
+  - Yellow background (`bg-yellow-200`) for text boxes
+  - Red border (`border-4 border-red-500`) around text boxes
+  - Fixed height (`h-80`) for both columns
+  - Shadow on images (`shadow-lg`)
+  - Subtle gradient dividers between features
+- **Default image**: BlackSquareTempImage.jpg (moved to public folder)
